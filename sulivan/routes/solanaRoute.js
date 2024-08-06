@@ -4,3 +4,6 @@ const {balance, sendTransaction} = required('../controller/solanaContracts');
 
 router.route('/balance/:address').get(balance);
 router.route('/send-transaction').post(sendTransaction);
+
+
+module.exports = router;

@@ -15,7 +15,6 @@ app.get('/', (req, res) => {
     res.send('Solana Api Started!!');
 });
 
-
 app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}`);
 });
