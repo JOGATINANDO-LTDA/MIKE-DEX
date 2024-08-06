@@ -2,15 +2,22 @@ const express = require('express');
 const { Keypair, Connection, PublicKey, clusterApiUrl, Transaction, SystemProgram, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 
 const router = express.Router();
-const connection = new Connection(clusterApiUrl('devnet'));
+const connection = new Connection(clusterApiUrl('devnet'),'confirmed');
 
 // Gerar par de chaves
-router.get('/generate-keypair', (req, res) => {
+router.get('/generate-keypair', async (req, res) => {
     const keypair = Keypair.generate();
     const publicKey = keypair.publicKey.toString();
     const privateKey = JSON.stringify(Array.from(keypair.secretKey));
 
-    res.status(200).json({ publicKey, privateKey });
+    const airdropSignature = await connection.requestAirdrop(
+        keypair.publicKey,
+        0.1*LAMPORTS_PER_SOL
+    );
+
+    await connection.confirmTransaction(airdropSignature);
+
+    res.status(200).json({ publicKey, privateKey});
 });
 
 // Obter saldo
@@ -45,21 +52,6 @@ router.post('/send-transaction', async (req, res) => {
         await connection.confirmTransaction(signature);
 
         res.status(200).json({ signature });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-router.post('/airdropSol', async (req, res) => {
-   
-    try {
-        const {address} = req.body;
-        const airdropSignature = await connection.requestAirdrop(
-            address,
-            solanaWeb3.LAMPORTS_PER_SOL
-        );
-        await connection.confirmTransaction(airdropSignature);
-        res.status(200).json({ address:address, message: "Fund. 1 SOL to test"});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
