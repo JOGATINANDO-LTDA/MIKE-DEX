@@ -50,4 +50,19 @@ router.post('/send-transaction', async (req, res) => {
     }
 });
 
+router.post('/airdropSol', async (req, res) => {
+   
+    try {
+        const {address} = req.body;
+        const airdropSignature = await connection.requestAirdrop(
+            address,
+            solanaWeb3.LAMPORTS_PER_SOL
+        );
+        await connection.confirmTransaction(airdropSignature);
+        res.status(200).json({ address:address, message: "Fund. 1 SOL to test"});
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
