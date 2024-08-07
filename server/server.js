@@ -3,6 +3,7 @@ const connectDatabase = require("./config/database");
 const cloudinary = require("cloudinary");
 const PORT = process.env.PORT || 3099;
 
+
 // UncaughtException Error
 process.on("uncaughtException", (err) => {
   console.log(`Error: ${err.message}`);

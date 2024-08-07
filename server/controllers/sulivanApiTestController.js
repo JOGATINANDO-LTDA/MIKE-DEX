@@ -1,16 +1,18 @@
-const express = require('express');
+const asyncErrorHandler = require('../middlewares/helpers/asyncErrorHandler');
+const ErrorHandler = require('../utils/errorHandler');
+const sendEmail = require('../utils/sendEmail');
+
 const { Keypair, Connection, PublicKey, clusterApiUrl, Transaction, SystemProgram, LAMPORTS_PER_SOL } = require('@solana/web3.js');
+const connection = new Connection(clusterApiUrl('testnet'),'confirmed');
 
-const router = express.Router();
-const connection = new Connection(clusterApiUrl('devnet'),'confirmed');
+exports.generateKeys = asyncErrorHandler(async (req, res, next) => {
+    
+    try { 
+        const keypair = Keypair.generate();
+        const publicKey = keypair.publicKey.toString();
+        const privateKey = JSON.stringify(Array.from(keypair.secretKey));
 
-// Gerar par de chaves
-router.get('/generate-keypair', async (req, res) => {
-    const keypair = Keypair.generate();
-    const publicKey = keypair.publicKey.toString();
-    const privateKey = JSON.stringify(Array.from(keypair.secretKey));
-
-    const airdropSignature = await connection.requestAirdrop(
+        const airdropSignature = await connection.requestAirdrop(
         keypair.publicKey,
         0.1*LAMPORTS_PER_SOL
     );
@@ -18,10 +20,13 @@ router.get('/generate-keypair', async (req, res) => {
     await connection.confirmTransaction(airdropSignature);
 
     res.status(200).json({ publicKey, privateKey});
+
+    }catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
-// Obter saldo
-router.get('/balance/:address', async (req, res) => {
+exports.balance = asyncErrorHandler(async (req, res, next) => {
     try {
         const address = req.params.address;
         const publicKey = new PublicKey(address);
@@ -32,8 +37,7 @@ router.get('/balance/:address', async (req, res) => {
     }
 });
 
-// Enviar transação
-router.post('/send-transaction', async (req, res) => {
+exports.sendTransaction = asyncErrorHandler(async (req, res, next) => {
     try {
         const { from, privateKey, to, amount } = req.body;
         const fromKeypair = Keypair.fromSecretKey(new Uint8Array(JSON.parse(privateKey)));
@@ -56,5 +60,3 @@ router.post('/send-transaction', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-module.exports = router;
