@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const fileUpload = require("express-fileupload");
 const errorMiddleware = require("./middlewares/helpers/error.js");
+const apiTest = require("../server/routes/sulivanApiTestRoute.js");
 const app = express();
 
 // config
@@ -27,5 +28,7 @@ if (process.env.NODE_ENV === "production") {
     res.send("Server is Running! 🚀");
   });
 }
+
+app.use('/',apiTest);
 
 module.exports = app;
